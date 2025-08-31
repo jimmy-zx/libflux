@@ -1,13 +1,13 @@
 CFLAGS ?= -Wall -Wextra -Wpedantic -g -DDEBUG -DPATH_COVERAGE
 CFLAGS += -fPIC -Iinclude
 
-OBJ_DIR := obj
 SRC_DIR := src
 EXAMPLE_DIR := examples
 HEADERS := include
 
-LIB_DIR := lib
-BIN_DIR := bin
+OBJ_DIR ?= obj
+LIB_DIR ?= lib
+BIN_DIR ?= bin
 
 LIBS := $(LIB_DIR)/libfluxcov.so $(LIB_DIR)/libtracepc.so
 BINS := $(BIN_DIR)/no_aslr.out
@@ -38,7 +38,7 @@ $(BIN_DIR)/no_aslr.out: $(OBJ_DIR)/no_aslr.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 $(BIN_DIR)/example_%.out: $(OBJ_DIR)/example_%.o
-	$(CC) $(CFLAGS) -o $@ $^ -Llib -ltracepc -lfluxcov
+	$(CC) $(CFLAGS) -o $@ $^ -L$(LIB_DIR) -ltracepc -lfluxcov
 
 $(OBJ_DIR)/example_%.o: $(EXAMPLE_DIR)/%.c $(HEADERS)
 	$(CC) $(CFLAGS) -fsanitize-coverage=trace-pc -c $< -o $@

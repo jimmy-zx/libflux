@@ -45,6 +45,16 @@ pip3 install -r requirements.txt
 pytest
 ```
 
+To build 32-bit libraries,
+
+```bash
+CFLAGS="-m32" OBJ_DIR=obj32 LIB_DIR=lib32 BIN_DIR=bin32 make
+```
+
+## Instrumentation
+
+See [instrumentation.md](docs/instrumentation.md)
+
 ## Configs
 
 - `-DPATH_COVERAGE`: use path coverage instead of block coverage.
