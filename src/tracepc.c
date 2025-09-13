@@ -41,6 +41,16 @@ __trace_pc_init(void) {
   __trace_pc_config.dump_pid = (getenv("FLUXCOV_DUMP_PID") != NULL);
   __trace_pc_config.cumulative = (getenv("FLUXCOV_CUM") != NULL);
 
+  if (getenv("FLUXCOV_HELP") != NULL) {
+    printf(
+        "Options: \n"
+        "FLUXCOV_DUMP=[path]: dump the execution result to [path]\n"
+        "FLUXCOV_SHM=[shm_path]: store the execution result via shm_open "
+        "[shm_path]\n"
+        "FLUXCOV_DUMP_PID=[any]: add pid to [path]\n"
+        "FLUXCOV_CUM=[any]: if enabled, memory buffer will not be cleared\n");
+  }
+
   // allocate counters buffer
   if (__trace_pc_config.shm_path != NULL) {
     if ((__trace_pc_counters = fluxcov_shm_open(
