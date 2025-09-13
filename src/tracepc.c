@@ -9,8 +9,13 @@
 
 #include "utils.h"
 
-static const char *__trace_pc_dump_file;
-static const char *__trace_pc_shm_path;
+static struct {
+  const char *dump_file;
+  const char *shm_path;
+  bool dump_pid;
+  bool cumulative;
+} __trace_pc_config;
+
 static struct counters_t *__trace_pc_counters;
 static uintptr_t __trace_pc_last_pc;
 
@@ -31,27 +36,46 @@ __attribute__((no_instrument_function, noinline)) void __sanitizer_cov_trace_pc(
 __attribute__((no_instrument_function, constructor)) static void
 __trace_pc_init(void) {
   __trace_pc_last_pc = 0;
-  __trace_pc_dump_file = getenv("FLUXCOV_DUMP");
+  __trace_pc_config.dump_file = getenv("FLUXCOV_DUMP");
+  __trace_pc_config.shm_path = getenv("FLUXCOV_SHM");
+  __trace_pc_config.dump_pid = (getenv("FLUXCOV_DUMP_PID") != NULL);
+  __trace_pc_config.cumulative = (getenv("FLUXCOV_CUM") != NULL);
 
   // allocate counters buffer
-  if ((__trace_pc_shm_path = getenv("FLUXCOV_SHM")) != NULL) {
+  if (__trace_pc_config.shm_path != NULL) {
     if ((__trace_pc_counters = fluxcov_shm_open(
-             __trace_pc_shm_path, O_RDWR,
+             __trace_pc_config.shm_path, O_RDWR,
              /*mode=*/0, PROT_READ | PROT_WRITE, false)) == NULL) {
       errExit("fluxcov_shm_open");
     }
-    memset(__trace_pc_counters, 0, sizeof(struct counters_t));
-  } else if ((__trace_pc_counters = calloc(1, sizeof(struct counters_t))) ==
+  } else if ((__trace_pc_counters = malloc(sizeof(struct counters_t))) ==
              NULL) {
     errExit("fuzzer failed to init: calloc\n");
+  }
+
+  if (!__trace_pc_config.cumulative) {
+    memset(__trace_pc_counters, 0, sizeof(struct counters_t));
   }
 }
 
 __attribute__((no_instrument_function, destructor)) static void __trace_pc_fini(
     void) {
   // dump to file
-  if (__trace_pc_dump_file != NULL) {
-    int fd = open(__trace_pc_dump_file, O_WRONLY | O_CREAT | O_TRUNC,
+  if (__trace_pc_config.dump_file != NULL) {
+    const char *buf = __trace_pc_config.dump_file;
+    if (__trace_pc_config.dump_pid) {
+      pid_t pid = getpid();
+      int len = snprintf(NULL, 0, "%s.%lld", __trace_pc_config.dump_file,
+                         (long long)pid);
+      if (len < 0) {
+        errExit("snprintf");
+      }
+      char *buf_w = alloca(len + 1);
+      snprintf(buf_w, len, "%s.%lld", __trace_pc_config.dump_file,
+               (long long)pid);
+      buf = buf_w;
+    }
+    int fd = open(buf, O_WRONLY | O_CREAT | O_TRUNC,
                   S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if (fd < 0) {
       errExit("fuzzer failed to dump: open");
@@ -64,9 +88,9 @@ __attribute__((no_instrument_function, destructor)) static void __trace_pc_fini(
   }
 
   // tear down counters buffer
-  if (__trace_pc_shm_path != NULL) {
-    if (fluxcov_shm_close(__trace_pc_shm_path, __trace_pc_counters, false) ==
-        -1) {
+  if (__trace_pc_config.shm_path != NULL) {
+    if (fluxcov_shm_close(__trace_pc_config.shm_path, __trace_pc_counters,
+                          false) == -1) {
       errExit("fluxcov_shm_close");
     }
   } else {
