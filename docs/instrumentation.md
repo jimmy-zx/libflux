@@ -33,12 +33,15 @@ export LD_LIBRARY_PATH=$ROOTDIR/libflux/lib:$ROOTDIR/libflux/lib32:$LD_LIBRARY_P
 cd gcc/build
 
 ../configure \
-    --prefix ../prefix \
-    --disable-multilib --disable-bootstrap --enable-languages=c \
-    CFLAGS="$CFLAGS $LDFLAGS" \
-    CXXFLAGS="$CFLAGS $LDFLAGS" \
-    LDFLAGS="$LDFLAGS" \
-    LD=ld.mold
+    --prefix $PWD/../prefix \
+    --enable-languages=c \
+    --disable-multilib \
+    --disable-bootstrap \
+    --disable-nls \
+    --with-target-system-zlib \
+    CC="gcc $LDFLAGS $CFLAGS" \
+    CXX="g++ $LDFLAGS $CFLAGS" \
+    LD="ld.mold $LDFLAGS"
 
-make
+make -j
 ```
