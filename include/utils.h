@@ -23,7 +23,10 @@
   }
 #endif
 
+#ifndef kNumTrackedBits
 #define kNumTrackedBits 18
+#endif
+
 #define kNumCounters ((uintptr_t)1 << kNumTrackedBits)
 
 struct counters_t {
