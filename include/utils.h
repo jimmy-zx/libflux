@@ -2,10 +2,12 @@
 #define UTILS_H_
 
 #include <fcntl.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -70,6 +72,32 @@ static inline int fluxcov_shm_close(const char *name, void *ptr, bool unlink) {
     }
   }
   return 0;
+}
+
+static inline char *get_exec(void) {
+  int fd = open("/proc/self/cmdline", O_RDONLY);
+  if (fd < 0) {
+    DEBUG_PERROR("get_exec: open");
+    return NULL;
+  }
+  char *buf = malloc(PATH_MAX + 1);
+  if (buf == NULL) {
+    close(fd);
+    DEBUG_PERROR("get_exec: malloc");
+    return NULL;
+  }
+  ssize_t count = read(fd, buf, PATH_MAX + 1);
+  close(fd);
+  if (count < 0) {
+    free(buf);
+    DEBUG_PERROR("get_exec: read");
+    return NULL;
+  }
+  if (strnlen(buf, PATH_MAX + 1) > PATH_MAX) {
+    free(buf);
+    return NULL;
+  }
+  return buf;
 }
 
 #endif  // UTILS_H_

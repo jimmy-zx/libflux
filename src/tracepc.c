@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include <libgen.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +11,7 @@
 #include "utils.h"
 
 static struct {
+  const char *filter;
   const char *dump_file;
   const char *shm_path;
   bool dump_pid;
@@ -36,19 +38,47 @@ __attribute__((no_instrument_function, noinline)) void __sanitizer_cov_trace_pc(
 __attribute__((no_instrument_function, constructor)) static void
 __trace_pc_init(void) {
   __trace_pc_last_pc = 0;
+  __trace_pc_config.filter = getenv("FLUXCOV_FILTER");
   __trace_pc_config.dump_file = getenv("FLUXCOV_DUMP");
   __trace_pc_config.shm_path = getenv("FLUXCOV_SHM");
   __trace_pc_config.dump_pid = (getenv("FLUXCOV_DUMP_PID") != NULL);
   __trace_pc_config.cumulative = (getenv("FLUXCOV_CUM") != NULL);
 
+  if (__trace_pc_config.filter != NULL) {
+    char *exec = get_exec();
+    if (exec == NULL) {
+      fprintf(stderr, "Unable to get argv[0]. Exiting...");
+      exit(EXIT_FAILURE);
+    }
+    char *base = basename(exec);
+    if (strcmp(__trace_pc_config.filter, base) != 0) {
+      __trace_pc_config.dump_file = NULL;
+      __trace_pc_config.dump_pid = NULL;
+    }
+    free(exec);
+  }
+
   if (getenv("FLUXCOV_HELP") != NULL) {
+    char *exec = get_exec();
     printf(
-        "Options: \n"
-        "FLUXCOV_DUMP=[path]: dump the execution result to [path]\n"
-        "FLUXCOV_SHM=[shm_path]: store the execution result via shm_open "
+        "\nBEGIN FLUXCOV_HELP\n"
+        "Options:\n"
+        "\tFLUXCOV_DUMP=[path=%s]: dump the execution result to [path]\n"
+        "\tFLUXCOV_SHM=[shm_path=%s]: store the execution result via shm_open "
         "[shm_path]\n"
-        "FLUXCOV_DUMP_PID=[any]: add pid to [path]\n"
-        "FLUXCOV_CUM=[any]: if enabled, memory buffer will not be cleared\n");
+        "\tFLUXCOV_DUMP_PID=[any=%d]: add pid to [path]\n"
+        "\tFLUXCOV_CUM=[any=%d]: if enabled, memory buffer will not be "
+        "cleared\n"
+        "\tFLUXCOV_FILTER=[filter=%s]: only dump if basename(argv[0]) == "
+        "[filter]\n"
+        "Debug:\n"
+        "\tpid=%lld\n"
+        "\targv[0]=%s\n"
+        "END FLUXCOV_HELP\n\n",
+        __trace_pc_config.dump_file, __trace_pc_config.shm_path,
+        (int)__trace_pc_config.dump_pid, (int)__trace_pc_config.cumulative,
+        __trace_pc_config.filter, (long long)getpid(), exec);
+    free(exec);
   }
 
   // allocate counters buffer

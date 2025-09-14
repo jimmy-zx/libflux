@@ -53,7 +53,11 @@ CFLAGS="-m32" OBJ_DIR=obj32 LIB_DIR=lib32 BIN_DIR=bin32 make
 
 ## Instrumentation
 
-See [instrumentation.md](docs/instrumentation.md)
+- Checking whether object files are instrumented: `objdump -dr [file]`.
+- If the target executable invokes other instrumented executables,
+  using `FLUXCOV_FILTER` might be helpful.
+
+See [instrumentation.md](docs/instrumentation.md) for futher details.
 
 ## Configs
 
