@@ -103,3 +103,32 @@ def test_shm_branch():
                 }
             )
             assert not instance.check(globals)
+
+
+def test_filter():
+    with Globals.create() as globals:
+        with Instance.create(SHM_PATH) as instance:
+            subprocess.check_call(
+                [
+                    os.path.abspath("./bin/no_aslr.out"),
+                    os.path.abspath("./bin/example_test.out"),
+                ],
+                env={
+                    "LD_LIBRARY_PATH": os.path.abspath("./lib"),
+                    "FLUXCOV_SHM": SHM_PATH,
+                    "FLUXCOV_FILTER": "invalid",
+                }
+            )
+            assert not instance.check(globals)
+            subprocess.check_call(
+                [
+                    os.path.abspath("./bin/no_aslr.out"),
+                    os.path.abspath("./bin/example_test.out"),
+                ],
+                env={
+                    "LD_LIBRARY_PATH": os.path.abspath("./lib"),
+                    "FLUXCOV_SHM": SHM_PATH,
+                    "FLUXCOV_FILTER": "example_test.out",
+                }
+            )
+            assert instance.check(globals)
