@@ -13,8 +13,7 @@ LIBS := $(LIB_DIR)/libfluxcov.so $(LIB_DIR)/libtracepc.so
 BINS := $(BIN_DIR)/no_aslr.out
 EXAMPLES := \
 			$(BIN_DIR)/example_test.out \
-			$(BIN_DIR)/example_branch.out \
-			$(BIN_DIR)/example_no_aslr.out
+			$(BIN_DIR)/example_branch.out
 
 all: $(OBJ_DIR) libs bins
 
