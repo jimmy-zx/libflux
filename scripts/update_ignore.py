@@ -17,11 +17,9 @@ def check_dir() -> None:
 
 
 def preprocess_ignore(ignore_file: bytes) -> bytes:
-    return (
-        "\n".join(
-            line for line in ignore_file.decode().split("\n") if line != ".envrc"
-        ).encode()
-    )
+    return "\n".join(
+        line for line in ignore_file.decode().split("\n") if line != ".envrc"
+    ).encode()
 
 
 def download_ignore(files: set[str]) -> dict[str, bytes]:
@@ -50,7 +48,7 @@ def main():
                     + contents[ignore]
                     + b"\n"
                 )
-            fp.write(b"compile_commands.json\n## end of ignore")
+            fp.write(b"compile_commands.json\n*.swp\n## end of ignore")
 
 
 if __name__ == "__main__":

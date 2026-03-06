@@ -10,8 +10,8 @@ struct fluxcov_globals {
 };
 
 struct fluxcov_instance {
-  char *path;  /* copy of path, malloc'd */
-  struct counters_t *counters;  /* points to shm buffer */
+  char *path;                  /* copy of path, malloc'd */
+  struct counters_t *counters; /* points to shm buffer */
 };
 
 /* Creates and initializes a new fluxcov_globals buffer.
