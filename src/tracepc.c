@@ -13,7 +13,7 @@
 #ifndef ELF_ET_DYN_BASE
 // x86-64 EXEC: 0
 // x86-64 DYN (no ASLR): 0x555555554000
-#define ELF_ET_DYN_BASE ((uintptr_t) 0)
+#define ELF_ET_DYN_BASE ((uintptr_t)0)
 #endif
 
 static struct {

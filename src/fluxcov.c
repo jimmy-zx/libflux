@@ -46,7 +46,7 @@ struct fluxcov_instance *fluxcov_start(const char *path, int *err) {
   }
   strcpy(instance->path, path);
   if ((instance->counters =
-           fluxcov_shm_open(path, O_RDWR | O_CREAT | O_TRUNC,
+           fluxcov_shm_open(path, O_RDWR | O_CREAT | O_TRUNC | O_EXCL,
                             S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH,
                             PROT_READ | PROT_WRITE, true)) == NULL) {
     int prev_errno = errno;
