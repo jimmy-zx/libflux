@@ -40,7 +40,7 @@ $(BIN_DIR)/no_aslr.out: $(OBJ_DIR)/no_aslr.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 $(BIN_DIR)/example_%.out: $(OBJ_DIR)/example_%.o
-	$(CC) $(CFLAGS) -o $@ $^ -L$(LIB_DIR) -ltracepc -lfluxcov
+	$(CC) $(CFLAGS) -no-pie -o $@ $^ -L$(LIB_DIR) -ltracepc -lfluxcov
 
 $(OBJ_DIR)/example_%.o: $(EXAMPLE_DIR)/%.c $(HEADERS)
 	$(CC) $(CFLAGS) -fsanitize-coverage=trace-pc -c $< -o $@

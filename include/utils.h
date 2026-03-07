@@ -24,7 +24,7 @@
 #endif
 
 #ifndef kNumTrackedBits
-#define kNumTrackedBits 18
+#define kNumTrackedBits 24
 #endif
 
 #define kNumCounters ((uintptr_t)1 << kNumTrackedBits)

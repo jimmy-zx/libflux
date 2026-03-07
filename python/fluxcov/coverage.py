@@ -1,5 +1,8 @@
 import argparse
 import io
+import os
+import pickle
+import hashlib
 import lief
 from capstone import Cs, CsInsn, CS_ARCH_X86, CS_MODE_64
 from capstone.x86 import X86Op, X86_OP_IMM
@@ -57,11 +60,21 @@ class ELF:
     def get_plt_table(self) -> dict[int, str]:
         elf = lief.parse(self.data)
         plt = elf.get_section(".plt")
-        stub0 = plt.virtual_address + 0x10
         stub_size = 0x10
+
+        if (plt_sec := elf.get_section(".plt.sec")) is not None:
+            # split CET PLT, not tested
+            stub0 = plt_sec.virtual_address
+        elif bytes(plt.content).startswith(b"\xf3\x0f\x1e\xfa\x41\x53"):
+            # CET/IBT compact layout
+            stub0 = plt.virtual_address + 0x20
+        else:
+            stub0 = plt.virtual_address + 0x10
 
         relocs: dict[int, str] = {}
         for idx, rel in enumerate(elf.pltgot_relocations):
+            if rel.symbol.name == "__sanitizer_cov_trace_pc":
+                print(hex(stub0 + idx * stub_size), rel)
             relocs[stub0 + idx * stub_size] = rel.symbol.name
         return relocs
 
@@ -85,7 +98,7 @@ class ELF:
         buckets: dict[int, list[int]] = {}
         for pc in self.call_sites:
             bucket = self.pc_to_bucket(pc)
-            buckets[bucket] = buckets.get(pc, []) + [pc]
+            buckets[bucket] = buckets.get(bucket, []) + [pc]
         return buckets
 
 
@@ -109,14 +122,41 @@ class Coverage:
         return invalid
 
 
+class ELFCache:
+    def __init__(self, cache_path: str) -> None:
+        self.cache_path = cache_path
+
+    def get_path(self, digest: str) -> str:
+        return os.path.join(self.cache_path, f"{digest}.coverage_pickle")
+
+    def get(self, elf_path: str) -> ELF:
+        with open(elf_path, "rb") as fp:
+            data = fp.read()
+        digest = hashlib.sha256(data).hexdigest()
+        path = self.get_path(digest)
+        if os.path.isfile(path):
+            with open(path, "rb") as fp:
+                obj = pickle.load(fp)
+            assert isinstance(obj, ELF)
+        else:
+            obj = ELF(data)
+            if not os.path.exists(self.cache_path):
+                os.makedirs(os.path.abspath(self.cache_path))
+            with open(path, "wb") as fp:
+                pickle.dump(obj, fp)
+        return obj
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("elf", type=str)
     parser.add_argument("-d", "--dump", type=str)
+    parser.add_argument("--cache", type=str, default="cache")
+    parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
 
-    with open(args.elf, "rb") as fp:
-        elf = ELF(fp.read())
+    cache = ELFCache(args.cache)
+    elf = cache.get(args.elf)
 
     dump: list[int] = []
     if args.dump:
@@ -125,12 +165,19 @@ def main():
 
     coverage = Coverage(elf, dump)
 
-    for bucket, pcs in elf.buckets.items():
-        print(f"Bucket {hex(bucket)} ->", end=" ")
-        print(",".join(hex(pc) for pc in pcs), end=" ")
-        print(coverage.hits.get(bucket, 0))
+    if args.verbose:
+        for bucket, pcs in elf.buckets.items():
+            if (count := coverage.hits.get(bucket, 0)) != 0:
+                print(f"Bucket {hex(bucket)} ->", end=" ")
+                print(",".join(hex(pc) for pc in pcs), end=" ")
+                print(count)
+        print()
 
+    conflicts = len([k for k, v in elf.buckets.items() if len(v) > 1])
     print(f"Coverage: {len(coverage.hits) / len(elf.buckets) * 100}%")
+    print(f"Usage: {len(elf.buckets) / (1 << NUM_TRACKED_BITS)}")
+    print(f"Simple conflicts: {conflicts} ({conflicts / len(elf.buckets)})")
+    print(f"Load factor: {len(elf.call_sites) / len(elf.buckets)}")
 
     invalid = coverage.validate()
     if invalid:

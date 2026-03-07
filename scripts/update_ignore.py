@@ -48,7 +48,7 @@ def main():
                     + contents[ignore]
                     + b"\n"
                 )
-            fp.write(b"compile_commands.json\n*.swp\n## end of ignore")
+            fp.write(b"compile_commands.json\n*.swp\ncache\n## end of ignore")
 
 
 if __name__ == "__main__":

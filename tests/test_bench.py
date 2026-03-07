@@ -1,7 +1,6 @@
 import subprocess
 import os
-from fluxcov.binding import Globals, Instance
-from fluxcov.coverage import ELF, Coverage
+from fluxcov.coverage import ELF
 from fluxcov.bench import Bench
 
 SHM_PATH = "/shm_test"

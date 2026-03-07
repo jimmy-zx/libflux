@@ -14,7 +14,7 @@ from ctypes import (
 
 c_int_p = POINTER(c_int)
 
-NUM_TRACKED_BITS = 18
+NUM_TRACKED_BITS = 24
 NUM_COUNTERS = 2**NUM_TRACKED_BITS
 
 
