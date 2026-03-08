@@ -73,8 +73,6 @@ class ELF:
 
         relocs: dict[int, str] = {}
         for idx, rel in enumerate(elf.pltgot_relocations):
-            if rel.symbol.name == "__sanitizer_cov_trace_pc":
-                print(hex(stub0 + idx * stub_size), rel)
             relocs[stub0 + idx * stub_size] = rel.symbol.name
         return relocs
 
