@@ -1,5 +1,6 @@
 import subprocess
 import os
+import pytest
 from fluxcov.binding import Globals, Instance
 from fluxcov.coverage import ELF, Coverage
 
@@ -10,6 +11,13 @@ def test_instance():
     with Globals.create() as globals:
         with Instance.create(SHM_PATH) as instance:
             assert not instance.check(globals)
+
+
+def test_exclusion():
+    with Instance.create(SHM_PATH):
+        with pytest.raises(AssertionError):
+            with Instance.create(SHM_PATH):
+                pass
 
 
 def test_shm_once():
