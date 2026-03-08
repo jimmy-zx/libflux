@@ -11,6 +11,8 @@ def test_instance():
     with Globals.create() as globals:
         with Instance.create(SHM_PATH) as instance:
             assert not instance.check(globals)
+            assert globals.ptr.contents.counters.sum() == 0
+            assert globals.ptr.contents.counters.count() == 0
 
 
 def test_exclusion():
@@ -42,6 +44,8 @@ def test_shm_once():
             assert instance.check(globals)
             cov_after = Coverage(elf, globals.counters)
             assert cov_after.hits
+            assert sum(cov_after.hits.values()) == globals.counters.sum()
+            assert len(cov_after.hits) == globals.counters.count()
 
 
 def test_shm_repeat():

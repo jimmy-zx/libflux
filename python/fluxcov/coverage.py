@@ -8,7 +8,7 @@ from capstone import Cs, CsInsn, CS_ARCH_X86, CS_MODE_64
 from capstone.x86 import X86Op, X86_OP_IMM
 from elftools.elf.elffile import ELFFile
 
-from fluxcov.binding import NUM_TRACKED_BITS
+from fluxcov.binding import NUM_TRACKED_BITS, COUNTERS
 
 
 class ELF:
@@ -101,8 +101,12 @@ class ELF:
 
 
 class Coverage:
-    def __init__(self, elf: ELF, dump: list[int], no_check: bool = False) -> None:
+    def __init__(
+        self, elf: ELF, dump: list[int] | COUNTERS, no_check: bool = False
+    ) -> None:
         self.elf = elf
+        if isinstance(dump, COUNTERS):
+            dump = list(dump.counters)
         self.dump = dump
 
         self.hits: dict[int, int] = {}

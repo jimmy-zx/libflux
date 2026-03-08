@@ -79,3 +79,19 @@ int fluxcov_end(struct fluxcov_instance *instance, int *err) {
   free(instance);
   RETURN1(res);
 }
+
+uint64_t fluxcov_sum(struct counters_t *counters) {
+  uint64_t sum = 0;
+  for (size_t i = 0; i < kNumCounters; i++) {
+    sum += counters->counters[i];
+  }
+  return sum;
+}
+
+uint64_t fluxcov_count(struct counters_t *counters) {
+  uint64_t count = 0;
+  for (size_t i = 0; i < kNumCounters; i++) {
+    count += counters->counters[i] > 0;
+  }
+  return count;
+}

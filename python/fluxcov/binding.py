@@ -10,6 +10,7 @@ from ctypes import (
     Structure,
     c_uint8,
     _Pointer,
+    byref,
 )
 
 c_int_p = POINTER(c_int)
@@ -38,10 +39,11 @@ class Closable(abc.ABC):
 class COUNTERS(Structure):
     _fields_ = [("counters", c_uint8 * NUM_COUNTERS)]
 
-    def __str__(self) -> str:
-        average = sum(self.counters) / NUM_COUNTERS
-        count = sum(val != 0 for val in self.counters)
-        return f"<COUNTERS count={count}/{NUM_COUNTERS}, avg={average}"
+    def sum(self) -> int:
+        return _lib.fluxcov_sum(byref(self))
+
+    def count(self) -> int:
+        return _lib.fluxcov_count(byref(self))
 
 
 class GLOBALS(Structure):
@@ -60,9 +62,11 @@ class INSTANCE(Structure):
 if TYPE_CHECKING:
     GLOBALS_P = _Pointer[GLOBALS]
     INSTANCE_P = _Pointer[INSTANCE]
+    COUNTERS_P = _Pointer[COUNTERS]
 else:
     GLOBALS_P = POINTER(GLOBALS)
     INSTANCE_P = POINTER(INSTANCE)
+    COUNTERS_P = POINTER(COUNTERS)
 
 
 class Globals(CaptureErrno, Closable):
@@ -85,8 +89,8 @@ class Globals(CaptureErrno, Closable):
         return str(self.ptr.contents.counters)
 
     @property
-    def counters(self) -> list[int]:
-        return list(self.ptr.contents.counters.counters)
+    def counters(self) -> COUNTERS:
+        return self.ptr.contents.counters
 
 
 class Instance(CaptureErrno, Closable):
@@ -116,8 +120,8 @@ class Instance(CaptureErrno, Closable):
         return str(self.ptr.contents.counters.contents)
 
     @property
-    def counters(self) -> list[int]:
-        return list(self.ptr.contents.counters.contents.counters)
+    def counters(self) -> COUNTERS:
+        return self.ptr.contents.counters.contents
 
 
 def get_lib() -> CDLL:
@@ -128,6 +132,8 @@ def get_lib() -> CDLL:
         "fluxcov_start": ([c_char_p, c_int_p], INSTANCE_P),
         "fluxcov_check": ([GLOBALS_P, INSTANCE_P, c_int_p], c_bool),
         "fluxcov_end": ([INSTANCE_P, c_int_p], int),
+        "fluxcov_sum": ([COUNTERS_P], int),
+        "fluxcov_count": ([COUNTERS_P], int),
     }
     for name, (args, res) in signatures.items():
         getattr(lib, name).argtypes = args

@@ -38,4 +38,8 @@ bool fluxcov_check(struct fluxcov_globals *globals,
  */
 int fluxcov_end(struct fluxcov_instance *instance, int *err);
 
+uint64_t fluxcov_sum(struct counters_t *counters);
+
+uint64_t fluxcov_count(struct counters_t *counters);
+
 #endif  // FLUXCOV_H_
