@@ -22,7 +22,7 @@ def test_shm_once():
             ELF.from_path("./bin/example_test.out"),
             SHM_PATH,
             ) as bench:
-        with bench.context() as context:
+        with bench.context(full=True) as context:
             subprocess.check_call(
                 [
                     os.path.abspath("./bin/no_aslr.out"),

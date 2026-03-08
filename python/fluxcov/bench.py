@@ -17,21 +17,24 @@ class Bench(Closable):
     def check(self) -> bool:
         return self.instance.check(self.globals)
 
-    def context(self) -> "BenchContext":
-        return BenchContext(self)
+    def context(self, **kwargs) -> "BenchContext":
+        return BenchContext(self, **kwargs)
 
 
 class BenchContext(Closable):
-    def __init__(self, bench: Bench) -> None:
+    def __init__(self, bench: Bench, full: bool = False) -> None:
         self.bench = bench
+        self.full = full
         self.cov_prev: Coverage | None = None
         self.cov_after: Coverage | None = None
         self.cov_cur: Coverage | None = None
 
     def __enter__(self) -> Self:
-        self.cov_prev = Coverage(self.bench.elf, self.bench.globals.counters)
+        if self.full:
+            self.cov_prev = Coverage(self.bench.elf, self.bench.globals.counters)
         return self
 
     def close(self) -> None:
         self.cov_after = Coverage(self.bench.elf, self.bench.globals.counters)
-        self.cov_cur = Coverage(self.bench.elf, self.bench.instance.counters)
+        if self.full:
+            self.cov_cur = Coverage(self.bench.elf, self.bench.instance.counters)
