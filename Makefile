@@ -55,12 +55,12 @@ test: all
 
 format:
 	clang-format -i $(SRC_DIR)/* $(HEADERS)/* $(EXAMPLE_DIR)/*
-	black python scripts
+	black python scripts tests
 
 check:
 	clang-format --dry-run $(SRC_DIR)/* $(HEADERS)/* $(EXAMPLE_DIR)/*
 	clang-tidy $(SRC_DIR)/* $(HEADERS)/* $(EXAMPLE_DIR)/*
-	black --check python
+	black --check python scripts tests
 
 clean:
 	rm -rf $(OBJ_DIR) $(LIB_DIR) $(BIN_DIR)

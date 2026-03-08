@@ -127,25 +127,37 @@ class Coverage:
 class ELFCache:
     def __init__(self, cache_path: str) -> None:
         self.cache_path = cache_path
+        self.mem_cache: dict[str, ELF] = {}
+        self.hash_cache: dict[str, str] = {}
 
     def get_path(self, digest: str) -> str:
         return os.path.join(self.cache_path, f"{digest}.coverage_pickle")
 
     def get(self, elf_path: str) -> ELF:
-        with open(elf_path, "rb") as fp:
-            data = fp.read()
-        digest = hashlib.sha256(data).hexdigest()
-        path = self.get_path(digest)
-        if os.path.isfile(path):
-            with open(path, "rb") as fp:
-                obj = pickle.load(fp)
-            assert isinstance(obj, ELF)
+        # check if path is already hashed
+        if elf_path in self.hash_cache:
+            digest = self.hash_cache[elf_path]
         else:
-            obj = ELF(data)
-            if not os.path.exists(self.cache_path):
-                os.makedirs(os.path.abspath(self.cache_path))
-            with open(path, "wb") as fp:
-                pickle.dump(obj, fp)
+            with open(elf_path, "rb") as fp:
+                data = fp.read()
+            digest = hashlib.sha256(data).hexdigest()
+            self.hash_cache[elf_path] = digest
+        # check if elf is already cached
+        if digest in self.mem_cache:
+            obj = self.mem_cache[digest]
+        else:
+            path = self.get_path(digest)
+            if os.path.isfile(path):
+                with open(path, "rb") as fp:
+                    obj = pickle.load(fp)
+                assert isinstance(obj, ELF)
+            else:
+                obj = ELF(data)
+                if not os.path.exists(self.cache_path):
+                    os.makedirs(os.path.abspath(self.cache_path))
+                with open(path, "wb") as fp:
+                    pickle.dump(obj, fp)
+            self.mem_cache[digest] = obj
         return obj
 
 

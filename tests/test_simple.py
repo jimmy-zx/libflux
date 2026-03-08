@@ -36,7 +36,7 @@ def test_shm_once():
                 env={
                     "LD_LIBRARY_PATH": os.path.abspath("./lib"),
                     "FLUXCOV_SHM": SHM_PATH,
-                }
+                },
             )
             elf = ELF.from_path("./bin/example_test.out")
             cov_prev = Coverage(elf, globals.counters)
@@ -63,7 +63,7 @@ def test_shm_repeat():
                 env={
                     "LD_LIBRARY_PATH": os.path.abspath("./lib"),
                     "FLUXCOV_SHM": SHM_PATH,
-                }
+                },
             )
             assert instance.check(globals)
             subprocess.check_call(
@@ -74,7 +74,7 @@ def test_shm_repeat():
                 env={
                     "LD_LIBRARY_PATH": os.path.abspath("./lib"),
                     "FLUXCOV_SHM": SHM_PATH,
-                }
+                },
             )
             assert not instance.check(globals)
 
@@ -94,7 +94,7 @@ def test_shm_branch():
                 env={
                     "LD_LIBRARY_PATH": os.path.abspath("./lib"),
                     "FLUXCOV_SHM": SHM_PATH,
-                }
+                },
             )
             assert instance.check(globals)
             subprocess.check_call(
@@ -106,7 +106,7 @@ def test_shm_branch():
                 env={
                     "LD_LIBRARY_PATH": os.path.abspath("./lib"),
                     "FLUXCOV_SHM": SHM_PATH,
-                }
+                },
             )
             assert instance.check(globals)
             subprocess.check_call(
@@ -118,7 +118,7 @@ def test_shm_branch():
                 env={
                     "LD_LIBRARY_PATH": os.path.abspath("./lib"),
                     "FLUXCOV_SHM": SHM_PATH,
-                }
+                },
             )
             assert not instance.check(globals)
 
@@ -135,7 +135,7 @@ def test_filter():
                     "LD_LIBRARY_PATH": os.path.abspath("./lib"),
                     "FLUXCOV_SHM": SHM_PATH,
                     "FLUXCOV_FILTER": "invalid",
-                }
+                },
             )
             assert not instance.check(globals)
             subprocess.check_call(
@@ -147,6 +147,6 @@ def test_filter():
                     "LD_LIBRARY_PATH": os.path.abspath("./lib"),
                     "FLUXCOV_SHM": SHM_PATH,
                     "FLUXCOV_FILTER": "example_test.out",
-                }
+                },
             )
             assert instance.check(globals)

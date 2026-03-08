@@ -8,9 +8,9 @@ SHM_PATH = "/shm_test"
 
 def test_instance():
     with Bench(
-            ELF.from_path("./bin/example_test.out"),
-            SHM_PATH,
-            ) as bench:
+        ELF.from_path("./bin/example_test.out"),
+        SHM_PATH,
+    ) as bench:
         assert not bench.check()
 
 
@@ -19,9 +19,9 @@ def test_shm_once():
     First invocation of any application should always increase coverage.
     """
     with Bench(
-            ELF.from_path("./bin/example_test.out"),
-            SHM_PATH,
-            ) as bench:
+        ELF.from_path("./bin/example_test.out"),
+        SHM_PATH,
+    ) as bench:
         with bench.context(full=True) as context:
             subprocess.check_call(
                 [
@@ -31,7 +31,7 @@ def test_shm_once():
                 env={
                     "LD_LIBRARY_PATH": os.path.abspath("./lib"),
                     "FLUXCOV_SHM": SHM_PATH,
-                }
+                },
             )
             assert bench.check()
 
@@ -46,9 +46,9 @@ def test_shm_repeat():
     should not increase coverage.
     """
     with Bench(
-            ELF.from_path("./bin/example_test.out"),
-            SHM_PATH,
-            ) as bench:
+        ELF.from_path("./bin/example_test.out"),
+        SHM_PATH,
+    ) as bench:
         with bench.context() as context1:
             subprocess.check_call(
                 [
@@ -58,7 +58,7 @@ def test_shm_repeat():
                 env={
                     "LD_LIBRARY_PATH": os.path.abspath("./lib"),
                     "FLUXCOV_SHM": SHM_PATH,
-                }
+                },
             )
             assert bench.check()
         with bench.context() as context2:
@@ -70,7 +70,7 @@ def test_shm_repeat():
                 env={
                     "LD_LIBRARY_PATH": os.path.abspath("./lib"),
                     "FLUXCOV_SHM": SHM_PATH,
-                }
+                },
             )
             assert not bench.check()
         assert context1.cov_after.hits == context2.cov_after.hits
@@ -82,9 +82,9 @@ def test_shm_branch():
     is likely to increase coverage.
     """
     with Bench(
-            ELF.from_path("./bin/example_branch.out"),
-            SHM_PATH,
-            ) as bench:
+        ELF.from_path("./bin/example_branch.out"),
+        SHM_PATH,
+    ) as bench:
         with bench.context() as context1:
             subprocess.check_call(
                 [
@@ -94,7 +94,7 @@ def test_shm_branch():
                 env={
                     "LD_LIBRARY_PATH": os.path.abspath("./lib"),
                     "FLUXCOV_SHM": SHM_PATH,
-                }
+                },
             )
             assert bench.check()
         with bench.context() as context2:
@@ -107,7 +107,7 @@ def test_shm_branch():
                 env={
                     "LD_LIBRARY_PATH": os.path.abspath("./lib"),
                     "FLUXCOV_SHM": SHM_PATH,
-                }
+                },
             )
             assert bench.check()
         with bench.context() as context3:
@@ -120,7 +120,7 @@ def test_shm_branch():
                 env={
                     "LD_LIBRARY_PATH": os.path.abspath("./lib"),
                     "FLUXCOV_SHM": SHM_PATH,
-                }
+                },
             )
             assert not bench.check()
         assert context1.cov_after.hits != context2.cov_after.hits
@@ -130,9 +130,9 @@ def test_shm_branch():
 
 def test_filter():
     with Bench(
-            ELF.from_path("./bin/example_test.out"),
-            SHM_PATH,
-            ) as bench:
+        ELF.from_path("./bin/example_test.out"),
+        SHM_PATH,
+    ) as bench:
         with bench.context() as context1:
             subprocess.check_call(
                 [
@@ -143,7 +143,7 @@ def test_filter():
                     "LD_LIBRARY_PATH": os.path.abspath("./lib"),
                     "FLUXCOV_SHM": SHM_PATH,
                     "FLUXCOV_FILTER": "invalid",
-                }
+                },
             )
             assert not bench.check()
         assert not context1.cov_after.hits
@@ -157,7 +157,7 @@ def test_filter():
                     "LD_LIBRARY_PATH": os.path.abspath("./lib"),
                     "FLUXCOV_SHM": SHM_PATH,
                     "FLUXCOV_FILTER": "example_test.out",
-                }
+                },
             )
             assert bench.check()
         assert context2.cov_after.hits
