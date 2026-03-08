@@ -1,5 +1,5 @@
 pytest
 black
-elftools
+pyelftools
 capstone
 lief
