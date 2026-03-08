@@ -65,6 +65,7 @@ __trace_pc_init(void) {
     if (strcmp(__trace_pc_config.filter, base) != 0) {
       __trace_pc_config.dump_file = NULL;
       __trace_pc_config.shm_path = NULL;
+      __trace_pc_config.verbose = false;
     }
     free(exec);
   }
