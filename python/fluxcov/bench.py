@@ -4,7 +4,7 @@ from fluxcov.binding import Closable, Globals, Instance
 
 
 class Bench(Closable):
-    def __init__(self, elf: ELF, shm_path: str) -> None:
+    def __init__(self, elf: ELF | None, shm_path: str) -> None:
         self.elf = elf
         self.shm_path = shm_path
         self.globals = Globals.create()
@@ -18,11 +18,13 @@ class Bench(Closable):
         return self.instance.check(self.globals)
 
     def context(self, **kwargs) -> "BenchContext":
+        assert self.elf is not None
         return BenchContext(self, **kwargs)
 
 
 class BenchContext(Closable):
     def __init__(self, bench: Bench, full: bool = False) -> None:
+        assert bench.elf is not None
         self.bench = bench
         self.full = full
         self.cov_prev: Coverage | None = None
