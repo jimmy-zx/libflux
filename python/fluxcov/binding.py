@@ -111,8 +111,8 @@ class Instance(CaptureErrno, Closable):
         assert _lib.fluxcov_end(self.ptr, self.errp) == 0
         assert self.err.value == 0
 
-    def check(self, globals: Globals) -> bool:
-        res = _lib.fluxcov_check(globals.ptr, self.ptr, self.errp)
+    def check(self, globals: Globals, max_global_counter: int = 0) -> bool:
+        res = _lib.fluxcov_check(globals.ptr, self.ptr, max_global_counter, self.errp)
         assert self.err.value == 0
         return res
 
@@ -130,7 +130,7 @@ def get_lib() -> CDLL:
         "fluxcov_init": ([c_int_p], GLOBALS_P),
         "fluxcov_fini": ([GLOBALS_P, c_int_p], c_int),
         "fluxcov_start": ([c_char_p, c_int_p], INSTANCE_P),
-        "fluxcov_check": ([GLOBALS_P, INSTANCE_P, c_int_p], c_bool),
+        "fluxcov_check": ([GLOBALS_P, INSTANCE_P, c_uint8, c_int_p], c_bool),
         "fluxcov_end": ([INSTANCE_P, c_int_p], int),
         "fluxcov_sum": ([COUNTERS_P], int),
         "fluxcov_count": ([COUNTERS_P], int),

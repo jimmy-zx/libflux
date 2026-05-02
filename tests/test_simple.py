@@ -15,6 +15,15 @@ def test_instance():
             assert globals.ptr.contents.counters.count() == 0
 
 
+def test_max_global_value():
+    with Globals.create() as globals:
+        with Instance.create(SHM_PATH) as instance:
+            assert not instance.check(globals)
+            globals.ptr.contents.counters.counters[0] = 1
+            instance.ptr.contents.counters.contents.counters[0] = 2
+            assert not instance.check(globals)
+
+
 def test_exclusion():
     with Instance.create(SHM_PATH):
         with pytest.raises(AssertionError):

@@ -32,7 +32,8 @@ struct fluxcov_instance *fluxcov_start(const char *path, int *err);
 /* Checks if there is new coverage.
  */
 bool fluxcov_check(struct fluxcov_globals *globals,
-                   struct fluxcov_instance *instance, int *err);
+                   struct fluxcov_instance *instance, uint8_t max_global_value,
+                   int *err);
 
 /* Frees the fluxcov_instance buffer.
  */
